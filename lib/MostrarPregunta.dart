@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:QRPreguntados/Pregunta.dart';
+import 'package:DesafioxBardas/Pregunta.dart';
 
 class MostrarPregunta extends StatelessWidget {
-
   final Pregunta pregunta;
 
   MostrarPregunta({Key key, @required this.pregunta}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    bool correcto = pregunta.correcto == "1";
-    String respuestaCorrecta = (pregunta.respuestaCorrecta == "1")
-        ? pregunta.opcionUno
-        : pregunta.opcionDos;
+    bool correcto = pregunta.respondioCorrecto == 1;
+    String respuestaCorrecta = pregunta.respuestaCorrecta;
+    print(pregunta.respondioCorrecto);
     return Scaffold(
       appBar: AppBar(
         title: correcto
@@ -23,22 +21,39 @@ class MostrarPregunta extends StatelessWidget {
               ),
         backgroundColor: correcto ? Colors.green : Colors.red,
       ),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Center(
-          child: Column(
-            children: <Widget>[
-              Text(
-                pregunta.pregunta,
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 30.0),
+      body: Center(
+        child: Column(
+          children: <Widget>[
+            Flexible(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                    color: correcto ? Colors.green[200] : Colors.red[200]),
+                child: Padding(
+                  padding: const EdgeInsets.all(5.0),
+                  child: Text(
+                    pregunta.pregunta,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        fontFamily: 'Roboto',
+                        fontSize: 26.0,
+                        fontWeight: FontWeight.bold),
+                  ),
+                ),
               ),
-              Text(
-                "Respuesta correcta: " + respuestaCorrecta,
-                style: TextStyle(fontSize: 18.0),
-              )
-            ],
-          ),
+            ),
+            Text(
+              "\nRespuesta correcta: \n",
+              style: TextStyle(fontFamily: 'LexendDeca', fontSize: 20.0),
+            ),
+            Padding(
+              padding: EdgeInsets.all(12),
+              child: Text(
+                respuestaCorrecta,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 22.0, fontFamily: 'LexendDeca'),
+              ),
+            )
+          ],
         ),
       ),
     );

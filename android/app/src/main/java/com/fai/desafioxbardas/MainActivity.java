@@ -1,4 +1,4 @@
-package com.matirinfante.qrpreguntados;
+package com.fai.desafioxbardas;
 
 import android.os.Bundle;
 import io.flutter.app.FlutterActivity;

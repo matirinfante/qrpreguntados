@@ -1,17 +1,12 @@
-// This example shows a [Scaffold] with an [AppBar], a [BottomAppBar] and a
-// [FloatingActionButton]. The [body] is a [Text] placed in a [Center] in order
-// to center the text within the [Scaffold] and the [FloatingActionButton] is
-// centered and docked within the [BottomAppBar] using
-// [FloatingActionButtonLocation.centerDocked]. The [FloatingActionButton] is
-// connected to a callback that increments a counter.
-
-import 'package:QRPreguntados/PreguntaVisual.dart';
+import 'package:DesafioxBardas/PreguntaVisual.dart';
 import 'package:flutter/material.dart';
 import 'package:barcode_scan/barcode_scan.dart';
-import 'package:QRPreguntados/MostrarPregunta.dart';
-import 'package:QRPreguntados/Pregunta.dart';
-import 'package:QRPreguntados/database/db.dart';
-import 'package:QRPreguntados/database/Puntaje.dart';
+import 'package:DesafioxBardas/MostrarPregunta.dart';
+import 'package:DesafioxBardas/Pregunta.dart';
+import 'package:DesafioxBardas/database/db.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 
 class Historial extends StatefulWidget {
   @override
@@ -19,17 +14,65 @@ class Historial extends StatefulWidget {
 }
 
 class _Historial extends State<Historial> {
+  int _puntaje;
+
+  initState() {
+    super.initState();
+    _obtenerPuntaje().then((result) {
+      setState(() {
+        _puntaje = result;
+      });
+    });
+  }
+
   Future _scanQR() async {
     try {
       String qrResult = await BarcodeScanner.scan();
-      //TODO: VERIFICAR CORRECTITUD DEL QR
-      Navigator.of(context).push(MaterialPageRoute(
-          builder: (context) => PreguntaVisual(preg: qrResult)));
+      List<String> check = qrResult.split(';');
+      if (check.length < 2) {
+        print('jaja');
+      } else if (check.length >= 3) {
+        var options = check[2];
+        if (isNumeric(options) &&
+            (check.length < int.parse(options) + 4 ||
+                check.length > int.parse(options) + 4)) {
+          print('Jaja');
+        } else {
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) => PreguntaVisual(preg: qrResult)));
+        }
+      } else {
+        Navigator.of(context).push(MaterialPageRoute(
+            builder: (context) => PreguntaVisual(preg: qrResult)));
+      }
     } catch (ex) {
       if (ex.code == BarcodeScanner.CameraAccessDenied) {
         print("denegado");
       }
     }
+  }
+
+  bool isNumeric(String s) {
+    if (s == null) {
+      return false;
+    }
+    return double.parse(s, (e) => null) != null;
+  }
+
+  Future<int> _obtenerPuntaje() async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = 'puntaje';
+    final resultado = prefs.getInt(key) ?? 0;
+    return resultado;
+  }
+
+  _resetPuntaje() async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = 'puntaje';
+    prefs.setInt(key, 0);
+    setState(() {
+      _puntaje = prefs.getInt(key);
+    });
   }
 
   @override
@@ -39,20 +82,31 @@ class _Historial extends State<Historial> {
   }
 
   Future<bool> _onBackPressed() {
-    return showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-              title: Text("Desea salir de la aplicacion?"),
-              actions: <Widget>[
-                FlatButton(
-                    onPressed: () => Navigator.pop(context, false),
-                    child: Text("No")),
-                FlatButton(
-                  onPressed: () => Navigator.pop(context, true),
-                  child: Text("Si"),
-                )
-              ],
-            ));
+    return Alert(
+      context: context,
+      type: AlertType.info,
+      title: "SALIR",
+      desc: "¿Desea salir de la aplicación?",
+      buttons: [
+        DialogButton(
+          child: Text(
+            "CANCELAR",
+            style: TextStyle(color: Colors.white, fontSize: 20),
+          ),
+          onPressed: () => Navigator.pop(context, false),
+          color: Colors.red,
+        ),
+        DialogButton(
+          child: Text(
+            "ACEPTAR",
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white, fontSize: 20),
+          ),
+          onPressed: () => Navigator.pop(context, true),
+          color: Colors.lightGreen,
+        )
+      ],
+    ).show();
   }
 
   @override
@@ -60,6 +114,7 @@ class _Historial extends State<Historial> {
     return WillPopScope(
       onWillPop: _onBackPressed,
       child: Scaffold(
+        key: GlobalKey(),
         drawer: Drawer(
           child: ListView(
             padding: EdgeInsets.zero,
@@ -69,15 +124,152 @@ class _Historial extends State<Historial> {
                 child: ListTile(
                   leading: Icon(Icons.info_outline),
                   title: Text('About'),
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return Scaffold(
+                            appBar: AppBar(
+                              title: Text('Acerca...'),
+                            ),
+                            body: Center(
+                                child: Container(
+                                    child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Column(children: <Widget>[
+                                Text(
+                                  'Sponsor',
+                                  style: TextStyle(
+                                      fontSize: 20, fontFamily: 'Ubuntu'),
+                                ),
+                                Flexible(
+                                    flex: 5,
+                                    child: Container(
+                                        height: 100,
+                                        decoration: BoxDecoration(
+                                            image: DecorationImage(
+                                                image: AssetImage(
+                                                    'assets/logos/img1.png'))))),
+                                Text(
+                                  'Colaboradores Oro',
+                                  style: TextStyle(
+                                      fontSize: 20, fontFamily: 'Ubuntu'),
+                                ),
+                                Flexible(
+                                    flex: 5,
+                                    child: CarouselSlider(
+                                      viewportFraction: 1.0,
+                                      autoPlay: true,
+                                      items: [2, 3, 4, 5].map((i) {
+                                        return Builder(
+                                          builder: (BuildContext context) {
+                                            return Container(
+                                              width: MediaQuery.of(context)
+                                                  .size
+                                                  .width,
+                                              decoration: BoxDecoration(
+                                                image: DecorationImage(
+                                                  image: AssetImage(
+                                                      'assets/logos/img$i.png'),
+                                                  fit: BoxFit.scaleDown,
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        );
+                                      }).toList(),
+                                    )),
+                                Text(
+                                  'Colaboradores Plata',
+                                  style: TextStyle(
+                                      fontSize: 20, fontFamily: 'Ubuntu'),
+                                ),
+                                Flexible(
+                                    flex: 5,
+                                    child: CarouselSlider(
+                                      viewportFraction: 1.0,
+                                      autoPlay: true,
+                                      items: [6, 7].map((i) {
+                                        return Builder(
+                                          builder: (BuildContext context) {
+                                            return Container(
+                                              height: 150,
+                                              width: MediaQuery.of(context)
+                                                  .size
+                                                  .width,
+                                              decoration: BoxDecoration(
+                                                image: DecorationImage(
+                                                  image: AssetImage(
+                                                      'assets/logos/img$i.png'),
+                                                  fit: BoxFit.scaleDown,
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        );
+                                      }).toList(),
+                                    )),
+                                Text(
+                                  'Organizadores',
+                                  style: TextStyle(
+                                      fontSize: 20, fontFamily: 'Ubuntu'),
+                                ),
+                                Flexible(
+                                    flex: 5,
+                                    child: CarouselSlider(
+                                      viewportFraction: 1.0,
+                                      autoPlay: true,
+                                      items: [8, 9, 10].map((i) {
+                                        return Builder(
+                                          builder: (BuildContext context) {
+                                            return Container(
+                                              width: MediaQuery.of(context)
+                                                  .size
+                                                  .width,
+                                              decoration: BoxDecoration(
+                                                image: DecorationImage(
+                                                  image: AssetImage(
+                                                      'assets/logos/img$i.png'),
+                                                  fit: BoxFit.scaleDown,
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        );
+                                      }).toList(),
+                                    ))
+                              ]),
+                            ))),
+                          );
+                        });
+                  },
                 ),
               ),
+              /*Padding(
+                padding: EdgeInsets.only(top: 10),
+                child: ListTile(
+                    leading: Icon(Icons.delete_forever),
+                    title: Text('Borrar todo'),
+                    onTap: () async {
+                      setState(() {});
+                      await PreguntaDB.db.resetDB();
+                      await _resetPuntaje();
+                      Navigator.pop(context);
+                    }),
+              ),*/
             ],
           ),
         ),
         appBar: AppBar(
+          backgroundColor: Colors.orange,
           title: Text(
-            'QRPreguntados',
+            'Desafio por las Bardas 2019',
+            style: TextStyle(
+              fontFamily: 'Roboto',
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.center,
           ),
         ),
         body: Column(
@@ -85,11 +277,11 @@ class _Historial extends State<Historial> {
             Padding(
               padding: const EdgeInsets.all(10.0),
               child: Center(
-                  child: Text(
-                //TODO implementar puntaje persistente
-                "Puntaje: " + puntaje.puntos.toString(),
-                style: TextStyle(fontSize: 20),
-              )),
+                  child: Text('Puntaje: $_puntaje',
+                      style: TextStyle(
+                        fontSize: 40,
+                        fontFamily: 'Raleway',
+                      ))),
             ),
             Expanded(
               child: FutureBuilder<List<Pregunta>>(
@@ -103,11 +295,18 @@ class _Historial extends State<Historial> {
                         itemBuilder: (BuildContext context, int index) {
                           Pregunta item = snapshot.data[index];
                           return ListTile(
-                            title: Text(item.pregunta),
-                            subtitle: item.correcto == "1"
-                                ? Text('Respuesta CORRECTA')
-                                : Text('Respuesta INCORRECTA'),
-                            leading: item.correcto == "1"
+                            title: Text(
+                              item.pregunta,
+                              style: TextStyle(fontFamily: 'Roboto'),
+                            ),
+                            subtitle: item.respondioCorrecto == 1
+                                ? Text(
+                                    'Respuesta CORRECTA',
+                                    style: TextStyle(fontFamily: 'Raleway'),
+                                  )
+                                : Text('Respuesta INCORRECTA',
+                                    style: TextStyle(fontFamily: 'Raleway')),
+                            leading: item.respondioCorrecto == 1
                                 ? Icon(Icons.check)
                                 : Icon(Icons.close),
                             onTap: () {
@@ -126,37 +325,29 @@ class _Historial extends State<Historial> {
             ),
           ],
         ),
-        floatingActionButton: Row(
+        bottomNavigationBar: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: FloatingActionButton(
+              padding: const EdgeInsets.all(10.0),
+              child: FloatingActionButton.extended(
                 heroTag: "btnScan",
+                backgroundColor: Colors.orange,
                 onPressed: _scanQR,
                 tooltip: 'Agregar una pregunta',
-                child: Icon(
+                icon: Icon(
                   Icons.add,
                   size: 35,
                 ),
-                elevation: 2,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: FloatingActionButton(
-                tooltip: 'Borrar todo',
-                child: Icon(
-                  Icons.delete_forever,
-                  size: 35,
+                label: Text(
+                  'AGREGAR\nPREGUNTA',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      fontFamily: 'Raleway',
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold),
                 ),
-                heroTag: "btnPrueba",
-                onPressed: () async {
-                  //TODO dialog para evitar toques accidentales
-                  setState(() {});
-                  await PreguntaDB.db.resetDB();
-                  puntaje.puntos = 0;
-                },
+                elevation: 2,
               ),
             ),
           ],

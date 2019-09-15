@@ -3,7 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:QRPreguntados/Pregunta.dart';
+import 'package:DesafioxBardas/Pregunta.dart';
 import 'package:sqflite/sql.dart';
 import 'package:sqflite/sqlite_api.dart';
 
@@ -21,17 +21,14 @@ class PreguntaDB {
 
   Future<Database> getDatabaseInstance() async {
     Directory directory = await getApplicationDocumentsDirectory();
-    String path = join(directory.path, "preguntas.db");
+    String path = join(directory.path, "pregunta.db");
     return await openDatabase(path, version: 1,
         onCreate: (Database db, int version) async {
       await db.execute("CREATE TABLE Pregunta ("
           "id integer primary key unique,"
           "pregunta TEXT,"
-          "opcionUno TEXT,"
-          "opcionDos TEXT,"
-          "opcionTres TEXT,"
-          "respuesta TEXT,"
-          "correcto TEXT"
+          "respuestaCorrecta TEXT,"
+          "respondioCorrecto integer"
           ")");
     });
   }

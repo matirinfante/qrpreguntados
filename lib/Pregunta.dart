@@ -1,38 +1,25 @@
 class Pregunta {
-  String respuestaCorrecta,
-      correcto,
-      pregunta,
-      opcionUno,
-      opcionDos,
-      opcionTres;
-  int id;
+  String respuestaCorrecta, pregunta;
+  int id, respondioCorrecto;
 
   Pregunta(
-      {this.id,
-      this.pregunta,
-      this.opcionUno,
-      this.opcionDos,
-      this.opcionTres,
-      this.respuestaCorrecta,
-      this.correcto});
+      {this.id, this.pregunta, this.respuestaCorrecta, this.respondioCorrecto});
+
+  void setRespondioCorrecto(int nuevo) {
+    this.respondioCorrecto = nuevo;
+  }
 
   Map<String, dynamic> toMap() => {
         "id": id,
         "pregunta": pregunta,
-        "opcionUno": opcionUno,
-        "opcionDos": opcionDos,
-        "opcionTres": opcionTres,
-        "respuesta": respuestaCorrecta,
-        "correcto": correcto,
+        "respuestaCorrecta": respuestaCorrecta,
+        "respondioCorrecto": respondioCorrecto,
       };
 
   factory Pregunta.fromMap(Map<String, dynamic> json) => new Pregunta(
         id: json["id"],
         pregunta: json["pregunta"],
-        opcionUno: json["opcionUno"],
-        opcionDos: json["opcionDos"],
-        opcionTres: json["opcionTres"],
-        respuestaCorrecta: json["respuesta"],
-        correcto: json["correcto"],
+        respuestaCorrecta: json["respuestaCorrecta"],
+        respondioCorrecto: json["respondioCorrecto"],
       );
 }
